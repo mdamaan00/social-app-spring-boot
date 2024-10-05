@@ -1,21 +1,20 @@
 package com.social.app.services;
 
 import com.social.app.models.Post;
-import jakarta.annotation.PostConstruct;
-import org.springframework.stereotype.Service;
 import com.social.app.repositories.CommentRepository;
 import com.social.app.repositories.LikeRepository;
 import com.social.app.repositories.PostRepository;
-
-import java.util.HashMap;
+import jakarta.annotation.PostConstruct;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import org.springframework.stereotype.Service;
 
 @Service
 public class PostMetaDataService {
 
-  private static final Map<Long, Long> postLikeCountMap = new HashMap<>();
-  private static final Map<Long, Long> commentCountMap = new HashMap<>();
+  private static final Map<Long, Long> postLikeCountMap = new ConcurrentHashMap<>();
+  private static final Map<Long, Long> commentCountMap = new ConcurrentHashMap<>();
 
   private final PostRepository postRepository;
   private final LikeRepository likeRepository;
@@ -62,11 +61,11 @@ public class PostMetaDataService {
     return commentCountMap.getOrDefault(postId, 0L);
   }
 
-  public void updateLikeCount(Long postId, boolean increment) {
+  public synchronized void updateLikeCount(Long postId, boolean increment) {
     postLikeCountMap.put(postId, postLikeCountMap.getOrDefault(postId, 0L) + (increment ? 1 : -1));
   }
 
-  public void updateCommentCount(Long postId, boolean increment) {
+  public synchronized void updateCommentCount(Long postId, boolean increment) {
     commentCountMap.put(postId, commentCountMap.getOrDefault(postId, 0L) + (increment ? 1 : -1));
   }
 }

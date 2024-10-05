@@ -1,13 +1,11 @@
 package com.social.app.models;
 
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
+
+import java.time.LocalDateTime;
 
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
 @Builder
 public class PostMeta {
     private Long id;
@@ -18,4 +16,5 @@ public class PostMeta {
     private Long commentCount;
     private Comment recentComment;
     private Boolean isLikedByUser;
+    private LocalDateTime createdAt;
 }

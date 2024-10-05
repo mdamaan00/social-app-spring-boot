@@ -1,24 +1,35 @@
 package com.social.app.dtos;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.social.app.models.Post;
-import com.social.app.models.User;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import com.social.app.models.Group;
+
+import java.util.Optional;
 
 @Data
 @AllArgsConstructor
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class PostDto {
   private long id;
   private String content;
-  private long userId;
-  private long groupId;
+  private UserDto user;
+  private GroupDto group;
 
   public Post toModel() {
     return Post.builder()
-        .user(User.builder().id(userId).build())
-        .group(Group.builder().id(groupId).build())
+        .id(id)
+        .user(Optional.ofNullable(user).map(UserDto::toModel).orElse(null))
+        .group(Optional.ofNullable(group).map(GroupDto::toModel).orElse(null))
         .content(content)
         .build();
+  }
+
+  public Post toCreateModel() {
+    return Post.builder().user(user.toModel()).group(group.toModel()).content(content).build();
+  }
+
+  public static PostDto map(Post post) {
+    return new PostDto(post.getId(), post.getContent(), null, null);
   }
 }

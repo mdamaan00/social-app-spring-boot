@@ -3,6 +3,7 @@ package com.social.app.services;
 import com.social.app.models.Comment;
 import com.social.app.models.Post;
 import com.social.app.models.PostMeta;
+import com.social.app.validations.GenericValidator;
 import org.springframework.stereotype.Service;
 import com.social.app.repositories.LikeRepository;
 import com.social.app.repositories.PostRepository;
@@ -17,30 +18,37 @@ public class PostService {
 
   private final PostRepository postRepository;
   private final LikeRepository likeRepository;
-  private final UserService userService;
   private final CommentService commentService;
   private final PostMetaDataService postMetaDataService;
+  private final GenericValidator genericValidator;
 
   public PostService(
       PostRepository postRepository,
-      UserService userService,
       LikeRepository likeRepository,
       CommentService commentService,
-      PostMetaDataService postMetaDataService) {
+      PostMetaDataService postMetaDataService,
+      GenericValidator genericValidator) {
     this.postRepository = postRepository;
-    this.userService = userService;
     this.likeRepository = likeRepository;
     this.commentService = commentService;
     this.postMetaDataService = postMetaDataService;
+    this.genericValidator = genericValidator;
   }
 
   public Post createPost(Post post) {
-    userService.isUserExistInGroup(post.getUser().getId(), post.getGroup().getId());
+    validateNullFields(post);
+    genericValidator.isUserExistInGroup(post.getUser().getId(), post.getGroup().getId());
     return postRepository.save(post);
   }
 
+  private void validateNullFields(Post post) {
+    if (post.getContent() == null || post.getContent().isBlank()) {
+      throw new RuntimeException("Post content can't be null or empty");
+    }
+  }
+
   public List<PostMeta> getAllPostsForGroup(Long groupId, Long userId) {
-    userService.isUserExistInGroup(userId, groupId);
+    genericValidator.isUserExistInGroup(userId, groupId);
     List<PostMeta> posts =
         postRepository.findPostsByGroupId(groupId).stream()
             .map(
@@ -52,6 +60,7 @@ public class PostService {
                         .content(post.getContent())
                         .commentCount(postMetaDataService.getCommentCount(post.getId()))
                         .likeCount(postMetaDataService.getLikeCount(post.getId()))
+                        .createdAt(post.getCreatedAt())
                         .build())
             .toList();
     Set<Long> postsLikedByUser =
@@ -62,9 +71,7 @@ public class PostService {
         commentService.getMostRecentCommentsByPostIds(posts.stream().map(PostMeta::getId).toList());
     posts.forEach(
         post -> {
-          if (recentCommentMap.containsKey(post.getId())) {
-            post.setRecentComment(recentCommentMap.get(post.getId()));
-          }
+          post.setRecentComment(recentCommentMap.getOrDefault(post.getId(), null));
           post.setIsLikedByUser(postsLikedByUser.contains(post.getId()));
         });
     return posts;

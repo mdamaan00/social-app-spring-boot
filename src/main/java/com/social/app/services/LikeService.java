@@ -1,40 +1,47 @@
 package com.social.app.services;
 
 import com.social.app.models.Like;
-import com.social.app.models.Post;
-import com.social.app.repositories.PostRepository;
-import com.social.app.repositories.UserRepository;
+import com.social.app.validations.GenericValidator;
 import org.springframework.stereotype.Service;
 import com.social.app.repositories.LikeRepository;
+
+import java.util.Optional;
 
 @Service
 public class LikeService {
   private final LikeRepository likeRepository;
-  private final PostRepository postRepository;
-  private final UserRepository userRepository;
   private final PostMetaDataService postMetaDataService;
+  private final GenericValidator genericValidator;
 
   public LikeService(
       LikeRepository likeRepository,
-      PostRepository postRepository,
-      UserRepository userRepository,
-      PostMetaDataService postMetaDataService) {
+      PostMetaDataService postMetaDataService,
+      GenericValidator genericValidator) {
     this.likeRepository = likeRepository;
-    this.postRepository = postRepository;
-    this.userRepository = userRepository;
     this.postMetaDataService = postMetaDataService;
+    this.genericValidator = genericValidator;
   }
 
-  public Like addLike(Like like) {
-    userRepository
-        .findById(like.getUser().getId())
-        .orElseThrow(() -> new RuntimeException("User not found"));
-    Post post =
-        postRepository
-            .findById(like.getPost().getId())
-            .orElseThrow(() -> new RuntimeException("Post not found"));
-    Like response = likeRepository.save(like);
-    postMetaDataService.updateLikeCount(post.getId(), true);
-    return response;
+  public void like(Like like, Long groupId) {
+    genericValidator.checkIfPostPresent(like.getPost().getId());
+    genericValidator.isUserExistInGroup(like.getUser().getId(), groupId);
+    boolean alreadyLiked =
+        likeRepository.isPostLikedByUser(like.getUser().getId(), like.getPost().getId());
+    if (alreadyLiked) {
+      throw new RuntimeException("User has already liked this");
+    }
+    likeRepository.save(like);
+    postMetaDataService.updateLikeCount(like.getPost().getId(), true);
+  }
+
+  public void dislike(Like like, Long groupId) {
+    genericValidator.checkIfPostPresent(like.getPost().getId());
+    genericValidator.isUserExistInGroup(like.getUser().getId(), groupId);
+    Like response =
+        likeRepository.findLikeByUserIdAndPostId(like.getUser().getId(), like.getPost().getId());
+    Optional.ofNullable(response)
+        .orElseThrow(() -> new RuntimeException("This post was not liked"));
+    likeRepository.deleteById(response.getId());
+    postMetaDataService.updateLikeCount(like.getPost().getId(), false);
   }
 }

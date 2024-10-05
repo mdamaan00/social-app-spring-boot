@@ -1,8 +1,11 @@
 package com.social.app.controllers;
 
+import com.social.app.dtos.GroupDto;
 import com.social.app.dtos.PostDto;
 import com.social.app.dtos.PostListingDto;
-import com.social.app.models.Post;
+import com.social.app.models.ApiResponse;
+import com.social.app.utils.StatusMessage;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -13,10 +16,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import com.social.app.services.PostService;
 
-import java.util.List;
-
 @RestController
-@RequestMapping("/posts")
+@RequestMapping("/groups/{groupId}/posts")
 public class PostController {
   private final PostService postService;
 
@@ -25,16 +26,37 @@ public class PostController {
   }
 
   @PostMapping
-  public ResponseEntity<Post> createPost(@RequestBody PostDto postDto) {
-    return ResponseEntity.ok(postService.createPost(postDto.toModel()));
+  public ResponseEntity<ApiResponse> createPost(
+      @RequestBody PostDto postDto, @PathVariable Long groupId) {
+    try {
+      postDto.setGroup(new GroupDto(groupId, null, null));
+      return ResponseEntity.ok(
+          ApiResponse.builder()
+              .status(StatusMessage.OK)
+              .data(PostDto.map(postService.createPost(postDto.toCreateModel())))
+              .message("Post created successfully")
+              .build());
+    } catch (RuntimeException e) {
+      return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
+          .body(ApiResponse.builder().status(StatusMessage.ERROR).message(e.getMessage()).build());
+    }
   }
 
-  @GetMapping("/groups/{groupId}")
-  public ResponseEntity<List<PostListingDto>> getPostsForGroup(
+  @GetMapping
+  public ResponseEntity<ApiResponse> getPostsForGroup(
       @PathVariable Long groupId, @RequestParam Long userId) {
-    return ResponseEntity.ok(
-        postService.getAllPostsForGroup(groupId, userId).stream()
-            .map(PostListingDto::map)
-            .toList());
+    try {
+      return ResponseEntity.ok(
+          ApiResponse.builder()
+              .status(StatusMessage.OK)
+              .data(
+                  postService.getAllPostsForGroup(groupId, userId).stream()
+                      .map(PostListingDto::map)
+                      .toList())
+              .build());
+    } catch (RuntimeException e) {
+      return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
+          .body(ApiResponse.builder().status(StatusMessage.ERROR).message(e.getMessage()).build());
+    }
   }
 }

@@ -15,20 +15,24 @@ public class UserService {
   }
 
   public User createUser(User user) {
-    // todo validation
+    validateNullFields(user);
+    User userFromDb = userRepository.findByUsername(user.getUsername());
+    if (userFromDb != null) {
+      throw new RuntimeException("User already exists with same username");
+    }
     return userRepository.save(user);
+  }
+
+  private void validateNullFields(User user) {
+    if (user.getEmail() == null || user.getEmail().isBlank()) {
+      throw new RuntimeException("Email can't be null or empty");
+    }
+    if (user.getUsername() == null || user.getUsername().isBlank()) {
+      throw new RuntimeException("Username can't be null or empty");
+    }
   }
 
   public List<User> getAllUsers() {
     return userRepository.findAll();
-  }
-
-  public void isUserExistInGroup(Long userId, Long groupId) {
-    User user = userRepository.findById(userId).orElseThrow(()-> new RuntimeException("User does not exist"));
-    boolean isInGroup = user.getGroups().stream().anyMatch(group -> group.getId().equals(groupId));
-
-    if (!isInGroup) {
-      throw new RuntimeException("User or group does not exist.");
-    }
   }
 }

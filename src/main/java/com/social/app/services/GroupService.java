@@ -11,33 +11,43 @@ import java.util.List;
 
 @Service
 public class GroupService {
-    private final GroupRepository groupRepository;
-    private final UserRepository userRepository;
+  private final GroupRepository groupRepository;
+  private final UserRepository userRepository;
 
-    public GroupService(GroupRepository groupRepository, UserRepository userRepository) {
-        this.groupRepository = groupRepository;
-        this.userRepository = userRepository;
-    }
+  public GroupService(GroupRepository groupRepository, UserRepository userRepository) {
+    this.groupRepository = groupRepository;
+    this.userRepository = userRepository;
+  }
 
-    public Group createGroup(Group group) {
-        // todo validate
-        return groupRepository.save(group);
-    }
+  public Group createGroup(Group group) {
+    validateNullFields(group);
+    return groupRepository.save(group);
+  }
 
-    @Transactional
-    public Group joinGroup(Long groupId, Long userId) {
-        Group group = groupRepository.findById(groupId)
-                .orElseThrow(() -> new RuntimeException("Group not found"));
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-        group.getUsers().add(user);
-        user.getGroups().add(group);
-        groupRepository.save(group);
-        userRepository.save(user);
-        return group;
+  private void validateNullFields(Group group) {
+    if (group.getName() == null || group.getName().isBlank()) {
+      throw new RuntimeException("Group name can't be null or empty");
     }
+    if (group.getDescription() == null || group.getDescription().isBlank()) {
+      throw new RuntimeException("Group description can't be null or empty");
+    }
+  }
 
-    public List<Group> getAllGroups() {
-        return groupRepository.findAll();
-    }
+  @Transactional
+  public void joinGroup(Long groupId, Long userId) {
+    Group group =
+        groupRepository
+            .findById(groupId)
+            .orElseThrow(() -> new RuntimeException("Group not found"));
+    User user =
+        userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
+    group.getUsers().add(user);
+    user.getGroups().add(group);
+    groupRepository.save(group);
+    userRepository.save(user);
+  }
+
+  public List<Group> getAllGroups() {
+    return groupRepository.findAll();
+  }
 }
