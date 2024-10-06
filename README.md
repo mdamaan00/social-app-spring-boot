@@ -69,6 +69,7 @@ API's [http://localhost:8080/swagger-ui/index.html](http://localhost:8080/swagge
 - **Hibernate**: As the JPA implementation
 - **Lombok**: To reduce boilerplate code for models
 - **Maven**: For build automation
+- **Redis**: For storing meta data
 
 ## Database Schema
 
