@@ -4,31 +4,34 @@ import com.social.app.models.Post;
 import com.social.app.repositories.CommentRepository;
 import com.social.app.repositories.LikeRepository;
 import com.social.app.repositories.PostRepository;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.stereotype.Service;
+
 import jakarta.annotation.PostConstruct;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-
-import org.springframework.stereotype.Service;
 
 @Service
 public class PostMetaDataService {
 
-  private static final Map<Long, Long> postLikeCountMap = new ConcurrentHashMap<>();
-  private static final Map<Long, Long> commentCountMap = new ConcurrentHashMap<>();
-
   private final PostRepository postRepository;
   private final LikeRepository likeRepository;
   private final CommentRepository commentRepository;
+  private final RedisTemplate<String, Long> redisTemplate;
+
+  private static final long CACHE_EXPIRATION_TIME = 3600;
 
   public PostMetaDataService(
       PostRepository postRepository,
       LikeRepository likeRepository,
-      CommentRepository commentRepository) {
+      CommentRepository commentRepository,
+      RedisTemplate<String, Long> redisTemplate) {
     this.postRepository = postRepository;
     this.likeRepository = likeRepository;
     this.commentRepository = commentRepository;
+    this.redisTemplate = redisTemplate;
   }
 
   @PostConstruct
@@ -39,19 +42,23 @@ public class PostMetaDataService {
   }
 
   private void loadLikeCounts(List<Post> posts) {
-    Map<Long, Long> likeCount = getLikeCountsByPostIds(posts.stream().map(Post::getId).toList());
-    posts.forEach(
-        post -> {
-          postLikeCountMap.put(post.getId(), likeCount.getOrDefault(post.getId(), 0L));
+    Map<Long, Long> likeCountMap = getLikeCountsByPostIds(posts.stream().map(Post::getId).toList());
+    likeCountMap.forEach(
+        (postId, likeCount) -> {
+          String key = "post:like:" + postId;
+          redisTemplate.opsForValue().set(key, likeCount);
+          redisTemplate.expire(key, CACHE_EXPIRATION_TIME, TimeUnit.SECONDS);
         });
   }
 
   private void loadCommentCounts(List<Post> posts) {
-    Map<Long, Long> commentCount =
+    Map<Long, Long> commentCountMap =
         getCommentCountsByPostIds(posts.stream().map(Post::getId).toList());
-    posts.forEach(
-        post -> {
-          commentCountMap.put(post.getId(), commentCount.getOrDefault(post.getId(), 0L));
+    commentCountMap.forEach(
+        (postId, commentCount) -> {
+          String key = "post:comment:" + postId;
+          redisTemplate.opsForValue().set(key, commentCount);
+          redisTemplate.expire(key, CACHE_EXPIRATION_TIME, TimeUnit.SECONDS);
         });
   }
 
@@ -68,18 +75,46 @@ public class PostMetaDataService {
   }
 
   public Long getLikeCount(Long postId) {
-    return postLikeCountMap.getOrDefault(postId, 0L);
+    String key = "post:like:" + postId;
+    Long likeCount = redisTemplate.opsForValue().get(key);
+    if (likeCount == null) {
+      likeCount = likeRepository.countByPostId(postId);
+      redisTemplate.opsForValue().set(key, likeCount);
+      redisTemplate.expire(key, CACHE_EXPIRATION_TIME, TimeUnit.SECONDS);
+    }
+    return likeCount;
   }
 
   public Long getCommentCount(Long postId) {
-    return commentCountMap.getOrDefault(postId, 0L);
+    String key = "post:comment:" + postId;
+    Long commentCount = redisTemplate.opsForValue().get(key);
+    if (commentCount == null) {
+      commentCount = commentRepository.countByPostId(postId);
+      redisTemplate.opsForValue().set(key, commentCount);
+      redisTemplate.expire(key, CACHE_EXPIRATION_TIME, TimeUnit.SECONDS);
+    }
+    return commentCount;
   }
 
-  public synchronized void updateLikeCount(Long postId, boolean increment) {
-    postLikeCountMap.put(postId, postLikeCountMap.getOrDefault(postId, 0L) + (increment ? 1 : -1));
+  public void updateLikeCount(Long postId, boolean increment) {
+    String key = "post:like:" + postId;
+    Long currentLikeCount = redisTemplate.opsForValue().get(key);
+    if (currentLikeCount == null) {
+      currentLikeCount = 0L;
+    }
+    currentLikeCount += increment ? 1 : -1;
+    redisTemplate.opsForValue().set(key, currentLikeCount);
+    redisTemplate.expire(key, CACHE_EXPIRATION_TIME, TimeUnit.SECONDS);
   }
 
-  public synchronized void updateCommentCount(Long postId, boolean increment) {
-    commentCountMap.put(postId, commentCountMap.getOrDefault(postId, 0L) + (increment ? 1 : -1));
+  public void updateCommentCount(Long postId, boolean increment) {
+    String key = "post:comment:" + postId;
+    Long currentCommentCount = redisTemplate.opsForValue().get(key);
+    if (currentCommentCount == null) {
+      currentCommentCount = 0L;
+    }
+    currentCommentCount += increment ? 1 : -1;
+    redisTemplate.opsForValue().set(key, currentCommentCount);
+    redisTemplate.expire(key, CACHE_EXPIRATION_TIME, TimeUnit.SECONDS);
   }
 }
