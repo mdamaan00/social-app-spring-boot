@@ -24,26 +24,25 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Post {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
 
-    private String content;
+  private String content;
 
-    @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+  @ManyToOne
+  @JoinColumn(name = "user_id", nullable = false)
+  private User user;
 
-    @ManyToOne
-    @JoinColumn(name = "group_id", nullable = false)
-    private Group group;
+  @ManyToOne
+  @JoinColumn(name = "group_id", nullable = false)
+  private Group group;
 
-    @OneToMany(mappedBy = "post")
-    private List<Comment> comments;
+  @OneToMany(mappedBy = "post")
+  private List<Comment> comments;
 
-    @OneToMany(mappedBy = "post")
-    private List<Like> likes;
+  @OneToMany(mappedBy = "post")
+  private List<Like> likes;
 
-    @CreationTimestamp
-    private LocalDateTime createdAt;
+  @CreationTimestamp private LocalDateTime createdAt;
 }

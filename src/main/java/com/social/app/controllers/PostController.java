@@ -5,7 +5,7 @@ import com.social.app.dtos.PostDto;
 import com.social.app.dtos.PostListingDto;
 import com.social.app.exceptions.InvalidInputException;
 import com.social.app.exceptions.UnprocessableEntityException;
-import com.social.app.models.ApiResponse;
+import com.social.app.dtos.ApiResponse;
 import com.social.app.utils.StatusMessage;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.http.HttpStatus;

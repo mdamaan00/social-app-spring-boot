@@ -24,13 +24,17 @@ public class GenericValidator {
   }
 
   public void isUserExistInGroup(Long userId, Long groupId) {
+    boolean isInGroup = isUserInGroup(userId, groupId);
+    if (!isInGroup) {
+      throw new UnprocessableEntityException("User does not exist in group");
+    }
+  }
+
+  public boolean isUserInGroup(Long userId, Long groupId) {
     User user =
         userRepository
             .findById(userId)
             .orElseThrow(() -> new EntityNotFoundException("User does not exist"));
-    boolean isInGroup = user.getGroups().stream().anyMatch(group -> group.getId().equals(groupId));
-    if (!isInGroup) {
-      throw new UnprocessableEntityException("User does not exist in group");
-    }
+      return user.getGroups().stream().anyMatch(group -> group.getId().equals(groupId));
   }
 }

@@ -1,6 +1,6 @@
 package com.social.app.handler;
 
-import com.social.app.models.ApiResponse;
+import com.social.app.dtos.ApiResponse;
 import com.social.app.utils.StatusMessage;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;

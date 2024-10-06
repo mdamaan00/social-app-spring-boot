@@ -12,6 +12,7 @@ import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 
@@ -24,31 +25,31 @@ import java.util.List;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
+@EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 public class User {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  @EqualsAndHashCode.Include
+  private Long id;
 
-    private String username;
-    private String email;
+  private String username;
+  private String email;
 
-    @OneToMany(mappedBy = "user")
-    private List<Post> posts;
+  @OneToMany(mappedBy = "user")
+  private List<Post> posts;
 
-    @OneToMany(mappedBy = "user")
-    private List<Like> likes;
+  @OneToMany(mappedBy = "user")
+  private List<Like> likes;
 
-    @OneToMany(mappedBy = "user")
-    private List<Comment> comments;
+  @OneToMany(mappedBy = "user")
+  private List<Comment> comments;
 
-    @ManyToMany
-    @JoinTable(
-            name = "user_groups",
-            joinColumns = @JoinColumn(name = "user_id"),
-            inverseJoinColumns = @JoinColumn(name = "group_id")
-    )
-    private List<Group> groups;
+  @ManyToMany
+  @JoinTable(
+      name = "user_groups",
+      joinColumns = @JoinColumn(name = "user_id"),
+      inverseJoinColumns = @JoinColumn(name = "group_id"))
+  private List<Group> groups;
 
-    @CreationTimestamp
-    private LocalDateTime createdAt;
+  @CreationTimestamp private LocalDateTime createdAt;
 }

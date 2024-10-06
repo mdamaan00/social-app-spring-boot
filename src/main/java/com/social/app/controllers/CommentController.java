@@ -3,7 +3,7 @@ package com.social.app.controllers;
 import com.social.app.dtos.PostDto;
 import com.social.app.exceptions.InvalidInputException;
 import com.social.app.exceptions.UnprocessableEntityException;
-import com.social.app.models.ApiResponse;
+import com.social.app.dtos.ApiResponse;
 import com.social.app.dtos.CommentDto;
 
 import com.social.app.utils.StatusMessage;

@@ -3,7 +3,7 @@ package com.social.app.controllers;
 import com.social.app.dtos.UserDto;
 import com.social.app.exceptions.DuplicateEntityException;
 import com.social.app.exceptions.InvalidInputException;
-import com.social.app.models.ApiResponse;
+import com.social.app.dtos.ApiResponse;
 import com.social.app.services.UserService;
 import com.social.app.utils.StatusMessage;
 import org.springframework.http.HttpStatus;

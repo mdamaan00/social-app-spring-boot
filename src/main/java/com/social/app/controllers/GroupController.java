@@ -1,13 +1,15 @@
 package com.social.app.controllers;
 
 import com.social.app.dtos.GroupDto;
+import com.social.app.exceptions.DuplicateEntityException;
 import com.social.app.exceptions.InvalidInputException;
-import com.social.app.models.ApiResponse;
+import com.social.app.dtos.ApiResponse;
 import com.social.app.services.GroupService;
 import com.social.app.utils.StatusMessage;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -48,6 +50,25 @@ public class GroupController {
           ApiResponse.builder()
               .status(StatusMessage.OK)
               .message("User: %s joined group: %s successfully".formatted(userId, groupId))
+              .build());
+    } catch (EntityNotFoundException e) {
+      return ResponseEntity.status(HttpStatus.NOT_FOUND)
+          .body(ApiResponse.builder().status(StatusMessage.ERROR).message(e.getMessage()).build());
+    } catch (DuplicateEntityException e) {
+      return ResponseEntity.status(HttpStatus.CONFLICT)
+          .body(ApiResponse.builder().status(StatusMessage.ERROR).message(e.getMessage()).build());
+    }
+  }
+
+  @DeleteMapping("/{groupId}/leave/users/{userId}")
+  public ResponseEntity<ApiResponse> leaveGroup(
+      @PathVariable Long groupId, @PathVariable Long userId) {
+    try {
+      groupService.leaveGroup(groupId, userId);
+      return ResponseEntity.ok(
+          ApiResponse.builder()
+              .status(StatusMessage.OK)
+              .message("User: %s left group: %s successfully".formatted(userId, groupId))
               .build());
     } catch (EntityNotFoundException e) {
       return ResponseEntity.status(HttpStatus.NOT_FOUND)

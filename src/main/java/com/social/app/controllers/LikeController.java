@@ -2,7 +2,7 @@ package com.social.app.controllers;
 
 import com.social.app.exceptions.DuplicateEntityException;
 import com.social.app.exceptions.UnprocessableEntityException;
-import com.social.app.models.ApiResponse;
+import com.social.app.dtos.ApiResponse;
 import com.social.app.models.Like;
 import com.social.app.models.Post;
 import com.social.app.models.User;
