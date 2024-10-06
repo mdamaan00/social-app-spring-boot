@@ -1,9 +1,11 @@
 package com.social.app.services;
 
+import com.social.app.exceptions.InvalidInputException;
 import com.social.app.models.User;
 import com.social.app.repositories.GroupRepository;
 import com.social.app.repositories.UserRepository;
 import com.social.app.models.Group;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,10 +28,10 @@ public class GroupService {
 
   private void validateNullFields(Group group) {
     if (group.getName() == null || group.getName().isBlank()) {
-      throw new RuntimeException("Group name can't be null or empty");
+      throw new InvalidInputException("Group name can't be null or empty");
     }
     if (group.getDescription() == null || group.getDescription().isBlank()) {
-      throw new RuntimeException("Group description can't be null or empty");
+      throw new InvalidInputException("Group description can't be null or empty");
     }
   }
 
@@ -38,9 +40,11 @@ public class GroupService {
     Group group =
         groupRepository
             .findById(groupId)
-            .orElseThrow(() -> new RuntimeException("Group not found"));
+            .orElseThrow(() -> new EntityNotFoundException("Group not found"));
     User user =
-        userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
+        userRepository
+            .findById(userId)
+            .orElseThrow(() -> new EntityNotFoundException("User not found"));
     group.getUsers().add(user);
     user.getGroups().add(group);
     groupRepository.save(group);

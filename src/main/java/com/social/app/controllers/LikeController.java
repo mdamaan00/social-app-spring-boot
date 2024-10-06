@@ -1,11 +1,14 @@
 package com.social.app.controllers;
 
+import com.social.app.exceptions.DuplicateEntityException;
+import com.social.app.exceptions.UnprocessableEntityException;
 import com.social.app.models.ApiResponse;
 import com.social.app.models.Like;
 import com.social.app.models.Post;
 import com.social.app.models.User;
 import com.social.app.services.LikeService;
 import com.social.app.utils.StatusMessage;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -40,9 +43,14 @@ public class LikeController {
               .status(StatusMessage.OK)
               .message("Post liked successfully")
               .build());
-
-    } catch (RuntimeException e) {
+    } catch (EntityNotFoundException e) {
+      return ResponseEntity.status(HttpStatus.NOT_FOUND)
+          .body(ApiResponse.builder().status(StatusMessage.ERROR).message(e.getMessage()).build());
+    } catch (UnprocessableEntityException e) {
       return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
+          .body(ApiResponse.builder().status(StatusMessage.ERROR).message(e.getMessage()).build());
+    } catch (DuplicateEntityException e) {
+      return ResponseEntity.status(HttpStatus.CONFLICT)
           .body(ApiResponse.builder().status(StatusMessage.ERROR).message(e.getMessage()).build());
     }
   }
@@ -62,8 +70,11 @@ public class LikeController {
               .status(StatusMessage.OK)
               .message("Post disliked successfully")
               .build());
-    } catch (Exception e) {
+    } catch (UnprocessableEntityException e) {
       return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
+          .body(ApiResponse.builder().status(StatusMessage.ERROR).message(e.getMessage()).build());
+    } catch (EntityNotFoundException e) {
+      return ResponseEntity.status(HttpStatus.NOT_FOUND)
           .body(ApiResponse.builder().status(StatusMessage.ERROR).message(e.getMessage()).build());
     }
   }

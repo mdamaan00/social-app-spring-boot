@@ -1,5 +1,7 @@
 package com.social.app.services;
 
+import com.social.app.exceptions.DuplicateEntityException;
+import com.social.app.exceptions.InvalidInputException;
 import com.social.app.repositories.UserRepository;
 import com.social.app.models.User;
 import org.springframework.stereotype.Service;
@@ -18,17 +20,17 @@ public class UserService {
     validateNullFields(user);
     User userFromDb = userRepository.findByUsername(user.getUsername());
     if (userFromDb != null) {
-      throw new RuntimeException("User already exists with same username");
+      throw new DuplicateEntityException("User already exists with same username");
     }
     return userRepository.save(user);
   }
 
   private void validateNullFields(User user) {
     if (user.getEmail() == null || user.getEmail().isBlank()) {
-      throw new RuntimeException("Email can't be null or empty");
+      throw new InvalidInputException("Email can't be null or empty");
     }
     if (user.getUsername() == null || user.getUsername().isBlank()) {
-      throw new RuntimeException("Username can't be null or empty");
+      throw new InvalidInputException("Username can't be null or empty");
     }
   }
 

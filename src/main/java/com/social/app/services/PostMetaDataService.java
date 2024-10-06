@@ -8,6 +8,8 @@ import jakarta.annotation.PostConstruct;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
+
 import org.springframework.stereotype.Service;
 
 @Service
@@ -31,26 +33,38 @@ public class PostMetaDataService {
 
   @PostConstruct
   public void init() {
-    loadLikeCounts();
-    loadCommentCounts();
+    List<Post> posts = postRepository.findAll();
+    loadLikeCounts(posts);
+    loadCommentCounts(posts);
   }
 
-  private void loadLikeCounts() {
-    List<Post> posts = postRepository.findAll();
+  private void loadLikeCounts(List<Post> posts) {
+    Map<Long, Long> likeCount = getLikeCountsByPostIds(posts.stream().map(Post::getId).toList());
     posts.forEach(
         post -> {
-          Long likeCount = likeRepository.countByPostId(post.getId());
-          postLikeCountMap.put(post.getId(), likeCount);
+          postLikeCountMap.put(post.getId(), likeCount.getOrDefault(post.getId(), 0L));
         });
   }
 
-  private void loadCommentCounts() {
-    List<Post> posts = postRepository.findAll();
+  private void loadCommentCounts(List<Post> posts) {
+    Map<Long, Long> commentCount =
+        getCommentCountsByPostIds(posts.stream().map(Post::getId).toList());
     posts.forEach(
         post -> {
-          Long commentCount = commentRepository.countByPostId(post.getId());
-          commentCountMap.put(post.getId(), commentCount);
+          commentCountMap.put(post.getId(), commentCount.getOrDefault(post.getId(), 0L));
         });
+  }
+
+  private Map<Long, Long> getCommentCountsByPostIds(List<Long> postIds) {
+    List<Object[]> results = commentRepository.findCommentCountsByPostIds(postIds);
+    return results.stream()
+        .collect(Collectors.toMap(result -> (Long) result[0], result -> (Long) result[1]));
+  }
+
+  private Map<Long, Long> getLikeCountsByPostIds(List<Long> postIds) {
+    List<Object[]> results = likeRepository.findLikeCountsByPostIds(postIds);
+    return results.stream()
+        .collect(Collectors.toMap(result -> (Long) result[0], result -> (Long) result[1]));
   }
 
   public Long getLikeCount(Long postId) {

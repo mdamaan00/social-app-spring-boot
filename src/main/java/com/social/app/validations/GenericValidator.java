@@ -1,8 +1,10 @@
 package com.social.app.validations;
 
+import com.social.app.exceptions.UnprocessableEntityException;
 import com.social.app.models.User;
 import com.social.app.repositories.PostRepository;
 import com.social.app.repositories.UserRepository;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -16,17 +18,19 @@ public class GenericValidator {
   }
 
   public void checkIfPostPresent(Long postId) {
-    postRepository.findById(postId).orElseThrow(() -> new RuntimeException("Post does not exist"));
+    postRepository
+        .findById(postId)
+        .orElseThrow(() -> new EntityNotFoundException("Post does not exist"));
   }
 
   public void isUserExistInGroup(Long userId, Long groupId) {
     User user =
-            userRepository
-                    .findById(userId)
-                    .orElseThrow(() -> new RuntimeException("User does not exist"));
+        userRepository
+            .findById(userId)
+            .orElseThrow(() -> new EntityNotFoundException("User does not exist"));
     boolean isInGroup = user.getGroups().stream().anyMatch(group -> group.getId().equals(groupId));
     if (!isInGroup) {
-      throw new RuntimeException("User does not exist in group");
+      throw new UnprocessableEntityException("User does not exist in group");
     }
   }
 }

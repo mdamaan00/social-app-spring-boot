@@ -1,6 +1,8 @@
 package com.social.app.controllers;
 
 import com.social.app.dtos.UserDto;
+import com.social.app.exceptions.DuplicateEntityException;
+import com.social.app.exceptions.InvalidInputException;
 import com.social.app.models.ApiResponse;
 import com.social.app.services.UserService;
 import com.social.app.utils.StatusMessage;
@@ -30,7 +32,10 @@ public class UserController {
               .data(UserDto.map(userService.createUser(userDto.toCreateModel())))
               .message("User created successfully")
               .build());
-    } catch (RuntimeException e) {
+    } catch (DuplicateEntityException e) {
+      return ResponseEntity.status(HttpStatus.CONFLICT)
+          .body(ApiResponse.builder().status(StatusMessage.ERROR).message(e.getMessage()).build());
+    } catch (InvalidInputException e) {
       return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
           .body(ApiResponse.builder().status(StatusMessage.ERROR).message(e.getMessage()).build());
     }

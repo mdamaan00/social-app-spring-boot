@@ -3,8 +3,11 @@ package com.social.app.controllers;
 import com.social.app.dtos.GroupDto;
 import com.social.app.dtos.PostDto;
 import com.social.app.dtos.PostListingDto;
+import com.social.app.exceptions.InvalidInputException;
+import com.social.app.exceptions.UnprocessableEntityException;
 import com.social.app.models.ApiResponse;
 import com.social.app.utils.StatusMessage;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -36,8 +39,11 @@ public class PostController {
               .data(PostDto.map(postService.createPost(postDto.toCreateModel())))
               .message("Post created successfully")
               .build());
-    } catch (RuntimeException e) {
+    } catch (InvalidInputException | UnprocessableEntityException e) {
       return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
+          .body(ApiResponse.builder().status(StatusMessage.ERROR).message(e.getMessage()).build());
+    } catch (EntityNotFoundException e) {
+      return ResponseEntity.status(HttpStatus.NOT_FOUND)
           .body(ApiResponse.builder().status(StatusMessage.ERROR).message(e.getMessage()).build());
     }
   }
@@ -54,8 +60,11 @@ public class PostController {
                       .map(PostListingDto::map)
                       .toList())
               .build());
-    } catch (RuntimeException e) {
+    } catch (UnprocessableEntityException e) {
       return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
+          .body(ApiResponse.builder().status(StatusMessage.ERROR).message(e.getMessage()).build());
+    } catch (EntityNotFoundException e) {
+      return ResponseEntity.status(HttpStatus.NOT_FOUND)
           .body(ApiResponse.builder().status(StatusMessage.ERROR).message(e.getMessage()).build());
     }
   }

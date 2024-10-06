@@ -1,8 +1,10 @@
 package com.social.app.services;
 
+import com.social.app.exceptions.InvalidInputException;
 import com.social.app.models.Comment;
 import com.social.app.repositories.CommentRepository;
 import com.social.app.validations.GenericValidator;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -43,9 +45,9 @@ public class CommentService {
     Comment comment =
         commentRepository
             .findById(commentId)
-            .orElseThrow(() -> new RuntimeException("Comment doesn't exists"));
+            .orElseThrow(() -> new EntityNotFoundException("Comment doesn't exists"));
     if (!comment.getUser().getId().equals(userId)) {
-      throw new RuntimeException("User %s can't delete this comment".formatted(userId));
+      throw new InvalidInputException("User %s can't delete this comment".formatted(userId));
     }
     commentRepository.deleteById(commentId);
     postMetaDataService.updateCommentCount(postId, false);

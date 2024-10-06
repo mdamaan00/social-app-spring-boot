@@ -1,9 +1,11 @@
 package com.social.app.controllers;
 
 import com.social.app.dtos.GroupDto;
+import com.social.app.exceptions.InvalidInputException;
 import com.social.app.models.ApiResponse;
 import com.social.app.services.GroupService;
 import com.social.app.utils.StatusMessage;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -31,7 +33,7 @@ public class GroupController {
               .data(GroupDto.map(groupService.createGroup(groupDto.toCreateModel())))
               .message("Group created successfully")
               .build());
-    } catch (RuntimeException e) {
+    } catch (InvalidInputException e) {
       return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
           .body(ApiResponse.builder().status(StatusMessage.ERROR).message(e.getMessage()).build());
     }
@@ -47,8 +49,8 @@ public class GroupController {
               .status(StatusMessage.OK)
               .message("User: %s joined group: %s successfully".formatted(userId, groupId))
               .build());
-    } catch (RuntimeException e) {
-      return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
+    } catch (EntityNotFoundException e) {
+      return ResponseEntity.status(HttpStatus.NOT_FOUND)
           .body(ApiResponse.builder().status(StatusMessage.ERROR).message(e.getMessage()).build());
     }
   }

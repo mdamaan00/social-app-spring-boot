@@ -1,7 +1,9 @@
 package com.social.app.services;
 
+import com.social.app.exceptions.DuplicateEntityException;
 import com.social.app.models.Like;
 import com.social.app.validations.GenericValidator;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 import com.social.app.repositories.LikeRepository;
 
@@ -28,7 +30,7 @@ public class LikeService {
     boolean alreadyLiked =
         likeRepository.isPostLikedByUser(like.getUser().getId(), like.getPost().getId());
     if (alreadyLiked) {
-      throw new RuntimeException("User has already liked this");
+      throw new DuplicateEntityException("User has already liked this");
     }
     likeRepository.save(like);
     postMetaDataService.updateLikeCount(like.getPost().getId(), true);
@@ -40,7 +42,7 @@ public class LikeService {
     Like response =
         likeRepository.findLikeByUserIdAndPostId(like.getUser().getId(), like.getPost().getId());
     Optional.ofNullable(response)
-        .orElseThrow(() -> new RuntimeException("This post was not liked"));
+        .orElseThrow(() -> new EntityNotFoundException("This post was not liked"));
     likeRepository.deleteById(response.getId());
     postMetaDataService.updateLikeCount(like.getPost().getId(), false);
   }
