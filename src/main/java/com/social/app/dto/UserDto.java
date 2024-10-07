@@ -1,10 +1,9 @@
 package com.social.app.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.social.app.model.User;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-
-import com.social.app.model.User;
 
 @Data
 @AllArgsConstructor

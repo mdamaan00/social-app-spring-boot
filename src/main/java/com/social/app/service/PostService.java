@@ -6,12 +6,11 @@ import com.social.app.model.Post;
 import com.social.app.model.PostMeta;
 import com.social.app.repository.PostRepository;
 import com.social.app.validation.GenericValidator;
+import jakarta.persistence.EntityNotFoundException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -42,6 +41,7 @@ public class PostService {
   public Post editPost(Post post) {
     validateNullFields(post);
     genericValidator.isUserExistInGroup(post.getUser().getId(), post.getGroup().getId());
+    genericValidator.isPostInGroup(post.getId(), post.getGroup().getId());
     Post postFromDb =
         postRepository
             .findById(post.getId())

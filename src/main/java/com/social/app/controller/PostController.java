@@ -1,11 +1,12 @@
 package com.social.app.controller;
 
+import com.social.app.dto.ApiResponse;
 import com.social.app.dto.GroupDto;
 import com.social.app.dto.PostDto;
 import com.social.app.dto.PostListingDto;
 import com.social.app.exception.InvalidInputException;
 import com.social.app.exception.UnprocessableEntityException;
-import com.social.app.dto.ApiResponse;
+import com.social.app.service.PostService;
 import com.social.app.util.StatusMessage;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.http.HttpStatus;
@@ -18,7 +19,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import com.social.app.service.PostService;
 
 @RestController
 @RequestMapping("/groups/{groupId}/posts")

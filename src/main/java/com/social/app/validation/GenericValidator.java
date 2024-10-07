@@ -1,6 +1,7 @@
 package com.social.app.validation;
 
 import com.social.app.exception.UnprocessableEntityException;
+import com.social.app.model.Post;
 import com.social.app.model.User;
 import com.social.app.repository.PostRepository;
 import com.social.app.repository.UserRepository;
@@ -27,6 +28,16 @@ public class GenericValidator {
     boolean isInGroup = isUserInGroup(userId, groupId);
     if (!isInGroup) {
       throw new UnprocessableEntityException("User does not exist in group");
+    }
+  }
+
+  public void isPostInGroup(Long postId, Long groupId) {
+    Post post =
+        postRepository
+            .findById(postId)
+            .orElseThrow(() -> new EntityNotFoundException("Post does not exist"));
+    if (!post.getGroup().getId().equals(groupId)) {
+      throw new EntityNotFoundException("Post not in group");
     }
   }
 

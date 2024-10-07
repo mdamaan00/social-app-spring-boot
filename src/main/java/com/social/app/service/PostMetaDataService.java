@@ -4,14 +4,13 @@ import com.social.app.model.Post;
 import com.social.app.repository.CommentRepository;
 import com.social.app.repository.LikeRepository;
 import com.social.app.repository.PostRepository;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.stereotype.Service;
-
 import jakarta.annotation.PostConstruct;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.stereotype.Service;
 
 @Service
 public class PostMetaDataService {
@@ -21,7 +20,7 @@ public class PostMetaDataService {
   private final CommentRepository commentRepository;
   private final RedisTemplate<String, Long> redisTemplate;
 
-  private static final long CACHE_EXPIRATION_TIME = 3600;
+  private static final long CACHE_EXPIRATION_TIME = 300;
 
   public PostMetaDataService(
       PostRepository postRepository,
@@ -96,7 +95,7 @@ public class PostMetaDataService {
     return commentCount;
   }
 
-  public void updateLikeCount(Long postId, boolean increment) {
+  public synchronized void updateLikeCount(Long postId, boolean increment) {
     String key = "post:like:" + postId;
     Long currentLikeCount = redisTemplate.opsForValue().get(key);
     if (currentLikeCount == null) {
@@ -104,10 +103,9 @@ public class PostMetaDataService {
     }
     currentLikeCount += increment ? 1 : -1;
     redisTemplate.opsForValue().set(key, currentLikeCount);
-    redisTemplate.expire(key, CACHE_EXPIRATION_TIME, TimeUnit.SECONDS);
   }
 
-  public void updateCommentCount(Long postId, boolean increment) {
+  public synchronized void updateCommentCount(Long postId, boolean increment) {
     String key = "post:comment:" + postId;
     Long currentCommentCount = redisTemplate.opsForValue().get(key);
     if (currentCommentCount == null) {
@@ -115,6 +113,5 @@ public class PostMetaDataService {
     }
     currentCommentCount += increment ? 1 : -1;
     redisTemplate.opsForValue().set(key, currentCommentCount);
-    redisTemplate.expire(key, CACHE_EXPIRATION_TIME, TimeUnit.SECONDS);
   }
 }

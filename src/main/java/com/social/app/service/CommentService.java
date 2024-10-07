@@ -35,6 +35,7 @@ public class CommentService {
   public Comment addComment(Comment comment, Long groupId) {
     genericValidator.checkIfPostPresent(comment.getPost().getId());
     genericValidator.isUserExistInGroup(comment.getUser().getId(), groupId);
+    genericValidator.isPostInGroup(comment.getPost().getId(), groupId);
     Comment response = commentRepository.save(comment);
     postMetaDataService.updateCommentCount(comment.getPost().getId(), true);
     return response;
@@ -42,6 +43,7 @@ public class CommentService {
 
   public void deleteComment(Long commentId, Long postId, Long groupId, Long userId) {
     genericValidator.isUserExistInGroup(userId, groupId);
+    genericValidator.isPostInGroup(postId, groupId);
     Comment comment =
         commentRepository
             .findById(commentId)

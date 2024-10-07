@@ -27,6 +27,7 @@ public class LikeService {
   public void like(Like like, Long groupId) {
     genericValidator.checkIfPostPresent(like.getPost().getId());
     genericValidator.isUserExistInGroup(like.getUser().getId(), groupId);
+    genericValidator.isPostInGroup(like.getPost().getId(), groupId);
     boolean alreadyLiked =
         likeRepository.isPostLikedByUser(like.getUser().getId(), like.getPost().getId());
     if (alreadyLiked) {
@@ -39,6 +40,7 @@ public class LikeService {
   public void dislike(Like like, Long groupId) {
     genericValidator.checkIfPostPresent(like.getPost().getId());
     genericValidator.isUserExistInGroup(like.getUser().getId(), groupId);
+    genericValidator.isPostInGroup(like.getPost().getId(), groupId);
     Like response =
         likeRepository.findLikeByUserIdAndPostId(like.getUser().getId(), like.getPost().getId());
     Optional.ofNullable(response)

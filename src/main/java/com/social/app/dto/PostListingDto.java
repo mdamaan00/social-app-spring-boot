@@ -1,11 +1,10 @@
 package com.social.app.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.social.app.model.PostMeta;
+import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import com.social.app.model.PostMeta;
-
-import java.time.LocalDateTime;
 
 @Data
 @AllArgsConstructor
@@ -13,7 +12,7 @@ import java.time.LocalDateTime;
 public class PostListingDto {
   private long id;
   private String content;
-  private UserDto user;
+  private UserDto postedBy;
   private long totalLikes;
   private long totalComments;
   private CommentDto latestComment;
