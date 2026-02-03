@@ -12,6 +12,7 @@ public class GroupDto {
   private long id;
   private String name;
   private String description;
+  private final String STRINGUnIT;
 
   public Group toModel() {
     return Group.builder().id(id).name(name).description(description).build();
